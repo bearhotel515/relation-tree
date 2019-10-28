@@ -25,7 +25,6 @@
     "uglifyjs-webpack-plugin": "1.2.7",
     "url-loader": "0.5.7",
     "webpack": "^4.33.0",
-    "webpack-bundle-analyzer": "2.13.1",
     "webpack-cli": "^3.3.9",
     "webpack-parallel-uglify-plugin": "1.1.0"
   },
