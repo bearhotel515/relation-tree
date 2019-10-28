@@ -122,11 +122,11 @@
  
 # 感谢
 
-lamberta （ https://github.com/lamberta/html5-animation ）
+lamberta (https://github.com/lamberta/html5-animation)
 
 David Geary (https://www.ibm.com/developerworks/cn/java/j-html5-game5/)
 
-Alan_147 （https://blog.csdn.net/Alan_1550587588/article/details/80384945）
+Alan_147 (https://blog.csdn.net/Alan_1550587588/article/details/80384945)
 
 本项目中使用了他们的思路、代码
 

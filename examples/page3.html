@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Relation Tree</title>
+  <script src="./data.js"></script>
+  <script src="./js/RelationTree.js"></script>
+  <style type="text/css">
+    * {
+      padding: 0;
+      margin: 0;
+    }
+
+    html {
+      background-color: rgba(200, 200, 255, 0.3);
+    }
+
+    .box {
+      width: 100%;
+      height: auto;
+      position: relative;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box" id="box">
+    <canvas id="canvasId">请升级或更换浏览器</canvas>
+  </div>
+</body>
+<script>
+  window.onload = () => {
+    let canvas = document.querySelector('#canvasId')
+    let direction = 'ttb'
+    let edgeType = 'line'
+    let textPos = 'bottom'
+    let app =new  RelationTree.app(canvas, {
+      width: window.innerWidth,
+      height: window.innerHeight - 24,
+      direction,
+      edge: {
+        mode: edgeType,
+      },
+      node: {
+        textPos,
+      },
+    })
+    //Mock Data
+   let node1 = treeData.children[0]
+   node1.fillStyle ='red'
+   let node2 = treeData.children[1]
+   node2.fillStyle ='white'
+   node2.strokeStyle ='purple'
+   node2.lineWidth = 2
+   app.load(treeData)
+    function resize() {
+      app.resize(window.innerWidth, window.innerHeight - 24)
+    }
+    RelationTree.eventUtils.listenerWindowResize(resize)
+  }
+</script>
+
+</html>

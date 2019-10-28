@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Relation Tree</title>
+  <script src="./data.js"></script>
+  <script src="./js/RelationTree.js"></script>
+  <style type="text/css">
+    * {
+      padding: 0;
+      margin: 0;
+    }
+
+    html {
+      background-color: rgba(200, 200, 255, 0.3);
+    }
+
+    .box {
+      width: 100%;
+      height: auto;
+      position: relative;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box" id="box">
+    <canvas id="canvasId">请升级或更换浏览器</canvas>
+  </div>
+</body>
+<script>
+  window.onload = () => {
+    let canvas = document.querySelector('#canvasId')
+    //方向（默认是 ttb  顶到底）
+    //btt： bottom to top (底到顶)
+    //ltr： left to right (左到右)
+    //rtl left to right (右到左)
+    let direction = 'ttb'
+    //边的种类 默认是 line 直线, 还有 curve 曲线 polyline 折线
+    let edgeType = 'line'
+    // 点上文字位置 （默认是 top, 还有 left ,right, bottom, center）
+    let textPos = 'bottom'
+    let app =new  RelationTree.app(canvas, {
+      width: window.innerWidth,
+      height: window.innerHeight - 24,
+      containerStyle: {
+        padding: 50 //默认是40
+      },
+      direction,
+      //边的设置
+      edge: {
+        mode: edgeType,
+        //lineWidth: 1, //（默认值）
+        //strokeStyle: '#ccc' //（默认值）
+      },
+      //点的设置
+      node: {
+        textPos,
+        //lineWidth: 1, //（默认值）
+        //font: "15px Arial", //（默认值）
+        //fillStyle: 'green', //（默认值）
+        //strokeStyle: 'green', //（默认值）
+        //textStyle: '#666', //（默认值）
+        //radius: 10 //（默认值）
+      },
+    })
+    //记载数据
+    app.load(treeData)
+    //添加事件监听
+    app.addEventListener({
+      click: (sprite) => {
+        console.log('click', sprite)
+      },
+      mouseup: (sprite) => {
+        console.log('mouseup', sprite)
+      },
+      mousedown: (sprite) => {
+        console.log('mousedown', sprite)
+      },
+      mousemove: (sprite) => {
+        //console.log('mousemove',sprite)
+      },
+    })
+    //移除事件
+    //app.removeEventListener()
+    function resize() {
+      app.resize(window.innerWidth, window.innerHeight - 24)
+    }
+    RelationTree.eventUtils.listenerWindowResize(resize)
+  }
+</script>
+
+</html>

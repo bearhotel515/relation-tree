@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Relation Tree</title>
+  <script src="./data.js"></script>
+  <script src="./js/RelationTree.js"></script>
+  <style type="text/css">
+    * {
+      padding: 0;
+      margin: 0;
+    }
+
+    html {
+      background-color: rgba(200, 200, 255, 0.3);
+    }
+
+    .box {
+      width: 100%;
+      height: auto;
+      position: relative;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box" id="box">
+    <canvas id="canvasId">请升级或更换浏览器</canvas>
+  </div>
+</body>
+<script>
+  function render(img) {
+    let canvas = document.querySelector('#canvasId')
+    let app = new RelationTree.app(canvas, {
+      width: window.innerWidth,
+      height: window.innerHeight - 24,
+      direction: 'ttb',
+      edge: {
+        mode: 'line',
+      },
+      node: {
+        radius: 19,
+        textPos: 'bottom',
+      },
+      artists: {
+        edgeArtists() {
+          return [{
+            draw(ctx) {
+              this.end
+              this.start
+              const radius = this.end.distanceTo(this.start) - this.r
+              const rad = this.end.radiansVector(this.start)
+              const vec = this.getVecByRR(rad, radius)
+              ctx.save();
+              ctx.beginPath();
+              ctx.lineCap = "round";
+              ctx.strokeStyle = this.strokeStyle;
+              ctx.lineWidth = this.lineWidth
+              ctx.setLineDash([8, 8]);
+              ctx.moveTo(this.start.x, this.start.y);
+              ctx.lineTo(vec.x, vec.y);
+              ctx.stroke();
+              ctx.restore();
+            }
+          }]
+        },
+        nodeArtists() {
+          return [{
+            draw(ctx) {
+              ctx.drawImage(img, this.p.x-19,this.p.y-19,38,38);
+            }
+          }]
+        }
+      }
+    })
+    app.load(treeData)
+
+    function resize() {
+      app.resize(window.innerWidth, window.innerHeight - 24)
+    }
+    RelationTree.eventUtils.listenerWindowResize(resize)
+  }
+
+  window.onload = () => {
+    var pc = new Image();
+    pc.onload = function () {
+      render(pc)
+    }
+    pc.src = './images/pc.png'
+
+  }
+</script>
+
+</html>
