@@ -57,6 +57,7 @@ export default class App {
     }, opt.node)
     this.listener = Object.assign({}, opt.listener)
     this.artists = Object.assign({}, opt.artists)
+    this.animationFrameAfter = opt.animationFrameAfter
     this.createCopyCanvas()
     this.setCanvasStyle(opt.width || 500, opt.height || 500)
   }
@@ -159,11 +160,10 @@ export default class App {
   }
   emptyData() {
     this.collisions = null
-  }
-  destroy() {
-    this.emptyData()
-    this.removeEventListener()
-    this.removeDom()
+    this.canvasData = null
+    this.cavDataMap = null
+    this.cavDataLevelArr = null
+    this.drawNodes = null
   }
   clear(context, width, height) {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
@@ -201,16 +201,14 @@ export default class App {
 
   iterateLevelArr(levelArr, drawNodes, cavDataMap, direction) {
     let nodes = []
-    let sumV
     let brothers
     let father
     let newPosition
-    let newVelocity
     for (let lvl = 0, len = levelArr.length; lvl < len; lvl++) {
       this.currentLevel = lvl
       nodes = levelArr[lvl]
       nodes.forEach(n => {
-        if (n.type == 'node' && !drawNodes.includes(n)) {
+        if (n.type === 'node' && !drawNodes.includes(n)) {
           drawNodes.push(n)
         }
       })
@@ -221,7 +219,7 @@ export default class App {
           if (father) {
             newPosition = null
             if (vertical.includes(direction)) { 
-              if (brothers[fuuid].length == 1) {
+              if (brothers[fuuid].length === 1) {
                 newPosition = brothers[fuuid][0].p.x
               } else if (brothers[fuuid].length > 1) { 
                 newPosition = (brothers[fuuid][0].p.x + brothers[fuuid][father.children.length - 1].p.x) / 2
@@ -232,7 +230,7 @@ export default class App {
                 }
               }
             } else { 
-              if (brothers[fuuid].length == 1) {
+              if (brothers[fuuid].length === 1) {
                 newPosition = brothers[fuuid][0].p.y
               } else if (brothers[fuuid].length > 1) {  
                 newPosition = (brothers[fuuid][0].p.y + brothers[fuuid][father.children.length - 1].p.y) / 2
@@ -268,7 +266,7 @@ export default class App {
         kid = cavDataMap[kiduuid]
         drawEdges.forEach(line => {
           [start, end] = line.edge
-          if (start == node._uuid && end == kid._uuid) {
+          if (start === node._uuid && end === kid._uuid) {
             line.start.x = node.p.x
             line.start.y = node.p.y
             line.end.x = kid.p.x
@@ -290,12 +288,40 @@ export default class App {
     })
     return sum
   }
+  sortLevelArr (cavDataLevelArr) {
+    let i
+    let len
+    let tmp
+    let flag = true
+    let tag
+    let m
+    cavDataLevelArr.forEach((arr) => {
+      if (arr.length > 1) {
+        for (i = 0, len = arr.length; i < len; i++) {
+          tag = arr[i]
+          for (m = i + 1; m < len; m++) {
+            if (!vertical.includes(this.direction)) {
+              if (tag.p.y >= arr[m].p.y) {
+                tag.p.y = arr[m].p.y + tag.r
+              }
+            } else if (tag.p.x >= arr[m].p.x) {
+              tag.p.x = arr[m].p.x + tag.r
+            }
+          }
+        }
+      }
+    })
+  }
   loop() {
+    this.sortLevelArr(this.cavDataLevelArr)
     this.iterateLevelArr(this.cavDataLevelArr, this.drawNodes, this.cavDataMap, this.direction)
     this.updateSpritesPos(this.drawNodes)
     this.updateEdgesPos(this.drawNodes, this.cavDataMap, this.drawEdges)
     this.clear()
     this.drawSprite([].concat(this.drawEdges).concat(this.drawNodes))
+    if (typeof this.animationFrameAfter === 'function') {
+      this.animationFrameAfter()
+    }
     this.requestAnimationID = requestAnimationFrame(this.loop.bind(this));
   }
   stopRequestAnimation() {
@@ -319,7 +345,9 @@ export default class App {
     this.loop();
   }
   destroy() {
+    this.emptyData()
     this.stopRequestAnimation()
     this.removeEventListener()
+    this.removeDom()
   }
 }

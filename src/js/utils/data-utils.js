@@ -8,10 +8,9 @@ export function guid() {
 }
 export function leverOrderTraversal(tree) {
   let result = []
-  let floor = 0
   let queue = []
   let index = 0
-  let rootNode = {} = Object.assign({
+  let rootNode = Object.assign({
     father: 'tree',
     widthRatio: 1,
     which: 0,
@@ -23,7 +22,6 @@ export function leverOrderTraversal(tree) {
   let len = null;
   let kids = []
   let child
-  let tmpObj
   while (index != queue.length) {
     node = queue[index++];
     len = Array.isArray(node.children) ? node.children.length : 0;
@@ -53,7 +51,7 @@ export function array2map(arr) {
   let map = {}
   if (Array.isArray(arr)) {
     arr.forEach(itm => {
-      map[itm._uuid] = itm 
+      map[itm._uuid] = itm
     })
   }
   return map
@@ -64,7 +62,7 @@ export function map2levelArray(map) {
     if (!array[map[key].level]) {
       array[map[key].level] = []
     }
-    array[map[key].level].push(map[key])  
+    array[map[key].level].push(map[key])
   })
   return array
 }
@@ -125,19 +123,16 @@ export function canvasData2LevelArr(arr) {
     if (!levelArray[node.level]) {
       levelArray[node.level] = []
     }
-    levelArray[node.level].push(node)  
+    levelArray[node.level].push(node)
   })
   return levelArray
 }
 
 export function setNodesInitPos(GroupApp) {
-  let occupyWidth = 0,
-    minRowHight = 0,
-    minColWidth = 0,
-    node, father, cx, cy, p, start,
-    preFloor = 0;  
+  let minRowHight = 0
+  let minColWidth = 0
+  let node, father, cx, cy, p, start
   const {
-    nodes,
     canvasData,
     cavDataMap,
     canvas,
@@ -165,21 +160,21 @@ export function setNodesInitPos(GroupApp) {
     father = cavDataMap[node.father]
     cx = 0
     cy = 0;
-    if (node.father === 'tree') {  
+    if (node.father === 'tree') {
       if (direction === 'btt' || direction === 'ttb') {
         p = new Vector2D(Math.floor(width / 2), 0)
       } else {
         p = new Vector2D(0, Math.floor(height / 2))
       }
       father = GroupApp.createNode({
-        p, 
+        p,
         v: new Vector2D(0, 0),
         _uuid: 'tree',
         level: -1,
         children: ['root'],
         widthRatio: 1
       })
-      if (vertical.includes(direction)) {  
+      if (vertical.includes(direction)) {
         cavDataMap['root'].p.x = Math.floor(width / 2);
         cavDataMap['root'].p.y = 0
       } else {
@@ -189,20 +184,20 @@ export function setNodesInitPos(GroupApp) {
       cavDataMap['root'].widthRatio = 1
     }
 
-    if (vertical.includes(direction)) { 
+    if (vertical.includes(direction)) {
       start = father.p.x - width * father.widthRatio / 2;
       cx = start + width * node.widthRatio * (node.which + 0.5);
-    } else { 
+    } else {
       start = father.p.y - height * father.widthRatio / 2;
       cy = start + height * node.widthRatio * (node.which + 0.5);
     }
-    if (direction === 'btt') { 
+    if (direction === 'btt') {
       cy = height - node.level * minRowHight - padding - node.r;
-    } else if (direction === 'ttb') {  
+    } else if (direction === 'ttb') {
       cy = node.level * minRowHight + padding + node.r;
-    } else if (direction === 'ltr') {  
+    } else if (direction === 'ltr') {
       cx = node.level * minColWidth + padding + node.r;
-    } else if (direction === 'rtl') {  
+    } else if (direction === 'rtl') {
       cx = width - node.level * minColWidth - padding - node.r;
     }
 
@@ -213,7 +208,7 @@ export function setNodesInitPos(GroupApp) {
 export function getBrothersMap(arr) {
   let brothers = {}
   arr.forEach(a => {
-    if (a.type == 'node') {
+    if (a.type === 'node') {
       if (!brothers[a.father]) {
         brothers[a.father] = []
       }
@@ -226,7 +221,7 @@ export function getBrothersMap(arr) {
 export function getEdges(sprites) {
   if (Array.isArray(sprites)) {
     return sprites.filter(s => {
-      return s.type == 'edge'
+      return s.type === 'edge'
     })
   } else {
     return []

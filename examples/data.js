@@ -84,13 +84,60 @@ const treeData = {
           name: 'childV',
           children: [{
             name: 'childW',
-            children: []
+            children: [
+              {
+                name: 'childA',
+                children: []
+              },
+              {
+                name: 'childB',
+                children: []
+              },
+              {
+                name: 'childC',
+                children: []
+              },
+              {
+                name: 'childD',
+                children: []
+              }
+            ]
           },{
             name: 'childX',
-            children: []
+            children: [{
+              name: 'childA',
+              children: []
+            },
+            {
+              name: 'childB',
+              children: []
+            },
+            {
+              name: 'childC',
+              children: []
+            },
+            {
+              name: 'childD',
+              children: []
+            }]
           },{
             name: 'childY',
-            children: []
+            children: [{
+              name: 'childA',
+              children: []
+            },
+            {
+              name: 'childB',
+              children: []
+            },
+            {
+              name: 'childC',
+              children: []
+            },
+            {
+              name: 'childD',
+              children: []
+            }]
           }
           ,{
             name: 'childZ',

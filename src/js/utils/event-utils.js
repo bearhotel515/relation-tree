@@ -109,7 +109,7 @@ utils.captureTouch = function (element) {
 utils.listenerWindowResize = function (fun) {
   window.addEventListener('resize', fun, false);
 }
-utils.removeListenerWindowResize = function () {
+utils.removeListenerWindowResize = function (fun) {
   window.removeEventListener('resize', fun, false);
 } 
 export default utils
