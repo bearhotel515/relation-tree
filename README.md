@@ -16,7 +16,7 @@
 * canvas 页面的canvas元素
 
 * opts 配置参数
-
+  * cellspacing 点间距系数 ,默认是3 数字越大间距越大
   * width 画布的宽度 
   * height 画布的高度
   * containerStyle 容器样式  {}
@@ -101,6 +101,12 @@
 
   ```
   addEventListener({
+     contextmenu: (sprite) => {
+      console.log('contextmenu', sprite)
+      },
+    dblclick: (sprite) => {
+      console.log('dblclick', sprite)
+    },
     click: (sprite) => {
       console.log('click', sprite)
     },
