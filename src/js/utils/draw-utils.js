@@ -31,6 +31,11 @@ export function drawNode(){
             x += this.r + 10
             ctx.textAlign = "left";
 
+          } else if (textPos === 'center') {
+            ctx.textAlign = "center";
+          } else {
+            ctx.textAlign = "center";
+            y -= this.r + 10
           }
           ctx.save();
           ctx.translate(x, y) 
@@ -49,14 +54,15 @@ export function drawLine(){
     draw(ctx) {
       const radius = this.end.distanceTo(this.start) - this.r
       const rad = this.end.radiansVector(this.start)
-      const vec = this.getVecByRR(rad, radius)
+      const evec = this.getVecByRR(rad, radius)
+      const svec = this.getVecByRR(rad, this.r)
       ctx.save();
       ctx.beginPath();
       ctx.lineCap = "round";
       ctx.strokeStyle = this.strokeStyle;
       ctx.lineWidth = this.lineWidth
-      ctx.moveTo(this.start.x, this.start.y);
-      ctx.lineTo(vec.x, vec.y);
+      ctx.moveTo(svec.x, svec.y);
+      ctx.lineTo(evec.x, evec.y);
       ctx.stroke();
       ctx.restore();
     }

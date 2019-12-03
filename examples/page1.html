@@ -38,11 +38,12 @@
     //rtl left to right (右到左)
     let direction = 'ttb'
     //边的种类 默认是 line 直线, 还有 curve 曲线 polyline 折线
-    let edgeType = 'line'
+    let edgeType = 'curve'
     // 点上文字位置 （默认是 top, 还有 left ,right, bottom, center）
     let textPos = 'bottom'
     let app =new  RelationTree.app(canvas, {
-      width: window.innerWidth,
+	  cellspacing:3,
+      width:  window.innerWidth,
       height: window.innerHeight - 24,
       containerStyle: {
         padding: 50 //默认是40
@@ -71,6 +72,12 @@
     app.load(treeData)
     //添加事件监听
     app.addEventListener({
+      contextmenu: (sprite) => {
+        console.log('contextmenu', sprite)
+      },
+      dblclick: (sprite) => {
+        console.log('dblclick', sprite)
+      },
       click: (sprite) => {
         console.log('click', sprite)
       },

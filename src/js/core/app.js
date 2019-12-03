@@ -1,5 +1,6 @@
 import Node from 'src/js/models/node.js'
 import Line from 'src/js/models/line.js'
+import Vector2D from 'src/js/models/vector.js'
 import eventUtils from 'utils/event-utils'
 import {
   getBrothersMap,
@@ -9,18 +10,22 @@ import {
   getCanvasData,
   canvasData2Map,
   canvasData2LevelArr,
-  setNodesInitPos
+  setNodesInitPos,
+  sortArr,
+
 } from 'utils/data-utils'
 import {
   nodeHitBorderTest,
   repulsionTest,
+  gravity,
+  setChildrenV
 } from 'utils/motion-utils'
-import { 
+import {
   drawNode,
   drawCurve,
   drawLine,
   drawPolyline
- } from 'utils/draw-utils'
+} from 'utils/draw-utils'
 
 const horizontal = ['ltr', 'rtl']
 const vertical = ['ttb', 'btt']
@@ -34,6 +39,8 @@ export default class App {
     this.drawNodes = []
     this.requestAnimationID
     this.currentLevel
+    this.cellspacing = opt.cellspacing || 3
+   
     this.totalFrames = 0
     this.maxFrames = 50000
     this.animate = opt.animate === undefined ? true : opt.animate
@@ -43,7 +50,7 @@ export default class App {
     this.direction = opt.direction || 'ttb'
     this.edge = Object.assign({
       type: 'edge',
-      lineWidth:1,
+      lineWidth: 1,
     }, opt.edge)
     this.node = Object.assign({
       textPos: 'top', 
@@ -58,6 +65,12 @@ export default class App {
     this.listener = Object.assign({}, opt.listener)
     this.artists = Object.assign({}, opt.artists)
     this.animationFrameAfter = opt.animationFrameAfter
+
+    this.hitNode = this.createNode({
+      p: new Vector2D(0, 0),
+      v: new Vector2D(0, 0),
+      r:this.node.radius
+    })
     this.createCopyCanvas()
     this.setCanvasStyle(opt.width || 500, opt.height || 500)
   }
@@ -68,7 +81,7 @@ export default class App {
     const dir = this.direction
     if (this.edge.mode === 'curve') {
       return drawCurve(dir)
-    }else if(this.edge.mode === 'polyline'){ 
+    } else if(this.edge.mode === 'polyline'){ 
       return drawPolyline(dir)
     }
     return drawLine()
@@ -90,7 +103,7 @@ export default class App {
     this.copyCanvas.id = 'copyCanvas'
     this.copyCanvas.style.position = 'absolute'
     this.copyCanvas.style.top = '-9999999px'
-    this.copyContext = this.copyCanvas.getContext('2d');
+    this.copyContext = this.copyCanvas.getContext('2d')
     document.querySelector('body').appendChild(this.copyCanvas)
   }
 
@@ -99,17 +112,21 @@ export default class App {
   }
   hitTest(ctx, mouse) {
     try {
-      var hit = ctx.getImageData(mouse.x, mouse.y, 1, 1).data[3] > 1;
+      var hit = ctx.getImageData(mouse.x, mouse.y, 1, 1).data[3] > 1
     } catch (e) {
       if (!DisplayObject.suppressCrossDomainErrors) {
         throw "An error has occurred. This is most likely due to security restrictions on reading canvas pixel data with local or cross-domain images.";
       }
     }
-    return hit;
+    return hit
   }
   onMouseEvent(event) {
     if (event.type === 'click') {
       this.listener.click && this.listener.click(this.hitObject)
+    } else if (event.type === 'contextmenu') {
+      this.listener.contextmenu && this.listener.contextmenu(this.hitObject)
+    } else if (event.type === 'dblclick') {
+      this.listener.dblclick && this.listener.dblclick(this.hitObject)
     } else if (event.type === 'mousedown' && this.hitObject) {
       this.listener.mousedown && this.listener.mousedown(this.hitObject)
     } else if (event.type === 'mouseup') {
@@ -118,9 +135,9 @@ export default class App {
       this.mouseTest((obj) => {
         if (obj) {
           this.hitObject = obj
-          this.canvas.style.cursor = 'pointer';
+          this.canvas.style.cursor = 'pointer'
         } else {
-          this.canvas.style.cursor = 'auto';
+          this.canvas.style.cursor = 'auto'
           this.hitObject = null
         }
         this.listener.mousemove && this.listener.mousemove(this.hitObject)
@@ -129,19 +146,23 @@ export default class App {
   }
   addEventListener(listener) {
     this.listener = Object.assign({}, listener)
-    this.mouse = eventUtils.captureMouse(this.canvas);
+    this.mouse = eventUtils.captureMouse(this.canvas)
     this.dispatchEvent = this.onMouseEvent.bind(this)
-    this.canvas.addEventListener('mousedown', this.dispatchEvent, false);
-    this.canvas.addEventListener('mouseup', this.dispatchEvent, false);
-    this.canvas.addEventListener('mousemove', this.dispatchEvent, false);
-    this.canvas.addEventListener('click', this.dispatchEvent, false);
+    this.canvas.addEventListener('mousedown', this.dispatchEvent, false)
+    this.canvas.addEventListener('mouseup', this.dispatchEvent, false)
+    this.canvas.addEventListener('mousemove', this.dispatchEvent, false)
+    this.canvas.addEventListener('click', this.dispatchEvent, false)
+    this.canvas.addEventListener('dblclick', this.dispatchEvent, false)
+    this.canvas.addEventListener('contextmenu', this.dispatchEvent, false)
   }
   removeEventListener() {
     eventUtils.removeCaptureMouse(this.canvas)
-    this.canvas.removeEventListener('mousedown', this.dispatchEvent, false);
-    this.canvas.removeEventListener('mouseup', this.dispatchEvent, false);
-    this.canvas.removeEventListener('mousemove', this.dispatchEvent, false);
-    this.canvas.removeEventListener('click', this.dispatchEvent, false);
+    this.canvas.removeEventListener('mousedown', this.dispatchEvent, false)
+    this.canvas.removeEventListener('mouseup', this.dispatchEvent, false)
+    this.canvas.removeEventListener('mousemove', this.dispatchEvent, false)
+    this.canvas.removeEventListener('click', this.dispatchEvent, false)
+    this.canvas.removeEventListener('dblclick', this.dispatchEvent, false)
+    this.canvas.removeEventListener('contextmenu', this.dispatchEvent, false)
   }
   removeDom() {
     this.canvas.parentNode.removeChild(this.canvas)
@@ -197,84 +218,79 @@ export default class App {
     setNodesInitPos(this)
     this.drawEdges = getEdges(this.canvasData.sprites)
     this.addCollisionObjs(this.canvasData.collisionObjs)
+    this.drawNodes = this.getDrawNodes()
   }
 
-  iterateLevelArr(levelArr, drawNodes, cavDataMap, direction) {
+  iterateLevelArr() {
     let nodes = []
+    let sumV
     let brothers
     let father
     let newPosition
-    for (let lvl = 0, len = levelArr.length; lvl < len; lvl++) {
+    let newVelocity
+    let levelSum
+    const {
+      cavDataLevelArr,
+      drawNodes,
+      cavDataMap,
+      direction,
+      hitNode
+    } = this
+    for (let lvl = 0, len = cavDataLevelArr.length; lvl < len; lvl++) {
       this.currentLevel = lvl
-      nodes = levelArr[lvl]
-      nodes.forEach(n => {
-        if (n.type === 'node' && !drawNodes.includes(n)) {
-          drawNodes.push(n)
-        }
-      })
+      nodes = cavDataLevelArr[lvl]
+      levelSum = 0
       brothers = getBrothersMap(nodes)
       for (let fuuid in brothers) {
         if (Array.isArray(brothers[fuuid])) {
           father = cavDataMap[fuuid]
-          if (father) {
-            newPosition = null
-            if (vertical.includes(direction)) { 
-              if (brothers[fuuid].length === 1) {
-                newPosition = brothers[fuuid][0].p.x
-              } else if (brothers[fuuid].length > 1) { 
-                newPosition = (brothers[fuuid][0].p.x + brothers[fuuid][father.children.length - 1].p.x) / 2
-              }
-              if (newPosition) {
-                if (father.p.x !== newPosition) {
-                  father.p.x = newPosition
-                }
-              }
-            } else { 
-              if (brothers[fuuid].length === 1) {
-                newPosition = brothers[fuuid][0].p.y
-              } else if (brothers[fuuid].length > 1) {  
-                newPosition = (brothers[fuuid][0].p.y + brothers[fuuid][father.children.length - 1].p.y) / 2
-              }
-              if (newPosition) {
-                if (father.p.y !== newPosition) {
-                  father.p.y = newPosition
-                }
-              }
+          if (!father) {
+            continue
+          }
+          newPosition = null
+          if (vertical.includes(direction)) { 
+            if (brothers[fuuid].length == 1) {
+              newPosition = brothers[fuuid][0].p.x
+            } else if (brothers[fuuid].length > 1) { 
+              newPosition = (brothers[fuuid][0].p.x + brothers[fuuid][father.children.length - 1].p.x) / 2
+            }
+            if (newPosition && father.p.x !== newPosition && father.stopMove) {
+              hitNode.p.x = newPosition
+              hitNode.p.y = father.p.y
+              gravity(hitNode,father,this.direction)
+            }
+          } else { 
+            if (brothers[fuuid].length == 1) { 
+              newPosition = brothers[fuuid][0].p.y
+            } else if (brothers[fuuid].length > 1) { 
+              newPosition = (brothers[fuuid][0].p.y + brothers[fuuid][father.children.length - 1].p.y) / 2
+            }
+            if (newPosition && father.p.y !== newPosition && father.stopMove) {
+              hitNode.p.y = newPosition
+              hitNode.p.x = father.p.x
+              gravity(hitNode,father)
             }
           }
+          father.update()
         }
       }
-      repulsionTest(this)
-     
+
     }
   }
-  updateSpritesPos(data) {
-    Array.isArray(data) && data.forEach((d) => {
-      d.update && d.update()
-    })
-  }
-  updateEdgesPos(drawNodes, cavDataMap, drawEdges) {
+  updateEdgesPos() {
     let node, children, kid, kiduuid, start, end
-    for (let i = 0, len = drawNodes.length; i < len; i++) {
-      node = drawNodes[i]
-      children = node.children
-      if (!children || children.length < 1) {
-        continue
-      }
-      for (let m = 0, sum = children.length; m < sum; m++) {
-        kiduuid = children[m]
-        kid = cavDataMap[kiduuid]
-        drawEdges.forEach(line => {
-          [start, end] = line.edge
-          if (start === node._uuid && end === kid._uuid) {
-            line.start.x = node.p.x
-            line.start.y = node.p.y
-            line.end.x = kid.p.x
-            line.end.y = kid.p.y
-          }
-        })
-      }
-    }
+    const {
+      drawNodes,
+      cavDataMap,
+      drawEdges
+    } = this
+    drawEdges.forEach(line => {
+      [start, end] = line.edge
+      line.start.x = cavDataMap[start].p.x
+      line.start.y = cavDataMap[start].p.y
+      line.end.x = cavDataMap[end].p.x
+      line.end.y = cavDataMap[end].p.y
+    })
   }
   drawSprite(data) {
     data.forEach((d) => {
@@ -288,45 +304,112 @@ export default class App {
     })
     return sum
   }
-  sortLevelArr (cavDataLevelArr) {
-    let i
-    let len
-    let tmp
-    let flag = true
-    let tag
-    let m
-    cavDataLevelArr.forEach((arr) => {
-      if (arr.length > 1) {
-        for (i = 0, len = arr.length; i < len; i++) {
-          tag = arr[i]
-          for (m = i + 1; m < len; m++) {
-            if (!vertical.includes(this.direction)) {
-              if (tag.p.y >= arr[m].p.y) {
-                tag.p.y = arr[m].p.y + tag.r
-              }
-            } else if (tag.p.x >= arr[m].p.x) {
-              tag.p.x = arr[m].p.x + tag.r
-            }
+  makeWallCell() {
+    const {
+      padding
+    } = this.containerStyle
+    const {
+      radius
+    } = this.node
+    const top = this.createNode({
+      name: 'top',
+      p: new Vector2D(0, padding),
+      v: new Vector2D(0, 0),
+      r: radius
+    })
+    const left = this.createNode({
+      name: 'left',
+      p: new Vector2D(padding, 0),
+      v: new Vector2D(0, 0),
+      r: radius
+    })
+    const bottom = this.createNode({
+      name: 'bottom',
+      p: new Vector2D(0, this.canvas.height + padding),
+      v: new Vector2D(0, 0),
+      r: radius
+    })
+    const right = this.createNode({
+      name: 'right',
+      p: new Vector2D(this.canvas.height - padding, 0),
+      v: new Vector2D(0, 0),
+      r: radius
+    })
+    this.walls = {
+      top,
+      left,
+      bottom,
+      right
+    }
+  }
+
+  getDrawNodes () {
+    let nodes; let
+      drawNodes = []
+    for (let lvl = 0, len = this.cavDataLevelArr.length; lvl < len; lvl++) {
+      nodes = this.cavDataLevelArr[lvl]
+      nodes.forEach((n) => {
+        if (n.type == 'node' && !drawNodes.includes(n)) {
+          drawNodes.push(n)
+        }
+      })
+    }
+    return drawNodes
+  }
+
+  setChildren () {
+    let node; let uid; let
+      kid
+    for (let i = 0, len = this.drawNodes.length; i < len; i++) {
+      node = this.drawNodes[i]
+      node.isSetChildren = false
+      if (Array.isArray(node.children)) {
+        for (let m = 0, num = node.children.length; m < num; m++) {
+          uid = node.children[m]
+          kid = this.cavDataMap[uid]
+          this.hitNode.p.x = node.p.x
+          this.hitNode.p.y = node.p.y
+          if (vertical.includes(this.direction)) {
+            this.hitNode.p.y = kid.p.y
+          } else {
+            this.hitNode.p.x = kid.p.x
+          }
+          if (kid.stopMove && !node.stopMove) {
+            node.isSetChildren = true
+            gravity(this.hitNode, kid, this.direction)
           }
         }
       }
-    })
+    }
   }
-  loop() {
-    this.sortLevelArr(this.cavDataLevelArr)
-    this.iterateLevelArr(this.cavDataLevelArr, this.drawNodes, this.cavDataMap, this.direction)
-    this.updateSpritesPos(this.drawNodes)
-    this.updateEdgesPos(this.drawNodes, this.cavDataMap, this.drawEdges)
+
+  loop () {
     this.clear()
-    this.drawSprite([].concat(this.drawEdges).concat(this.drawNodes))
+    sortArr(this)
+    const {
+      drawNodes,
+      context,
+      cavDataMap
+    } = this
+    if (!window.sun) {
+      window.sun = 1
+    }
+    window.sun++
+    repulsionTest(this)
+    this.setChildren()
+    this.iterateLevelArr()
+
+    this.updateEdgesPos()
+    this.drawSprite(this.drawEdges)
     if (typeof this.animationFrameAfter === 'function') {
       this.animationFrameAfter()
     }
-    this.requestAnimationID = requestAnimationFrame(this.loop.bind(this));
+    this.requestAnimationID = requestAnimationFrame(this.loop.bind(this))
   }
-  stopRequestAnimation() {
+
+  stopRequestAnimation () {
     if (this.requestAnimationID) {
-      cancelAnimationFrame(this.requestAnimationID);
+      cancelAnimationFrame(this.requestAnimationID)
       this.requestAnimationID = null
     }
   }
@@ -335,13 +418,15 @@ export default class App {
     this.stopRequestAnimation()
     this.clear()
     this.setCanvasStyle(width, height)
+    this.makeWallCell()
     setNodesInitPos(this, this.canvasData.sprites, this.cavDataMap, this.canvas.width)
-    this.loop();
+    this.loop()
   }
   load(data) {
     this.stopRequestAnimation()
     this.clear()
     this.transformData(data)
+    this.makeWallCell()
     this.loop();
   }
   destroy() {
