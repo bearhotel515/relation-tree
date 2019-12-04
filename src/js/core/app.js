@@ -31,8 +31,8 @@ const horizontal = ['ltr', 'rtl']
 const vertical = ['ttb', 'btt']
 export default class App {
   constructor(canvas, opt = {}) {
-    this.canvas = canvas;
-    this.context = this.canvas.getContext('2d');
+    this.canvas = canvas
+    this.context = this.canvas.getContext('2d')
     this.canvasData = null
     this.cavDataMap = {}
     this.cavDataLevelArr = []

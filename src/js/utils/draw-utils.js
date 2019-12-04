@@ -97,17 +97,17 @@ export function drawCurve(dir) {
       ctx.save();
       ctx.beginPath();
       if (dir === 'btt') {
-        ctx.moveTo(this.start.x, this.start.y + this.r);
-        ctx.bezierCurveTo(this.start.x, Math.floor(this.start.y - offSet), this.end.x, Math.floor(this.end.y + offSet), this.end.x, this.end.y);
+        ctx.moveTo(this.start.x, this.start.y - this.r);
+        ctx.bezierCurveTo(this.start.x, Math.floor(this.start.y - offSet), this.end.x, Math.floor(this.end.y + offSet), this.end.x, this.end.y+ this.r);
       } else if (dir === 'ttb') {
         ctx.moveTo(this.start.x, this.start.y + this.r);
         ctx.bezierCurveTo(this.start.x, Math.floor(this.start.y + offSet), this.end.x, Math.floor(this.end.y - offSet), this.end.x, this.end.y - this.r);
       } else if (dir === 'ltr') {
         ctx.moveTo(this.start.x + this.r, this.start.y);
-        ctx.bezierCurveTo(Math.floor(this.start.x + offSet), this.start.y, Math.floor(this.end.x - offSet), this.end.y, this.end.x, this.end.y);
+        ctx.bezierCurveTo(Math.floor(this.start.x + offSet), this.start.y, Math.floor(this.end.x - offSet), this.end.y, this.end.x- this.r, this.end.y);
       } else if (dir === 'rtl') {
         ctx.moveTo(this.start.x - this.r, this.start.y);
-        ctx.bezierCurveTo(Math.floor(this.start.x - offSet), this.start.y, Math.floor(this.start.x - offSet), this.end.y, this.end.x, this.end.y);
+        ctx.bezierCurveTo(Math.floor(this.start.x - offSet), this.start.y, Math.floor(this.start.x - offSet), this.end.y, this.end.x+ this.r, this.end.y);
       }
 
       ctx.strokeStyle = this.strokeStyle;
@@ -126,10 +126,10 @@ export function drawPolyline(dir){
       ctx.save();
       ctx.beginPath();
       if (dir === 'btt') {
-        ctx.moveTo(this.start.x, this.start.y + this.r);
+        ctx.moveTo(this.start.x, this.start.y - this.r);
         ctx.lineTo(this.start.x, Math.floor(this.start.y - offSet));
         ctx.lineTo(this.end.x, Math.floor(this.end.y + offSet));
-        ctx.lineTo( this.end.x, this.end.y);
+        ctx.lineTo( this.end.x, this.end.y+ this.r);
       } else if (dir === 'ttb') {
         ctx.moveTo(this.start.x, this.start.y + this.r);
         ctx.lineTo(this.start.x, Math.floor(this.start.y + offSet));
@@ -139,12 +139,12 @@ export function drawPolyline(dir){
         ctx.moveTo(this.start.x + this.r, this.start.y);
         ctx.lineTo(Math.floor(this.start.x + offSet), this.start.y);
         ctx.lineTo(Math.floor(this.end.x - offSet), this.end.y);
-        ctx.lineTo(this.end.x, this.end.y);
+        ctx.lineTo(this.end.x- this.r, this.end.y);
       } else if (dir === 'rtl') {
         ctx.moveTo(this.start.x - this.r, this.start.y);
         ctx.lineTo(Math.floor(this.start.x -offSet), this.start.y);
         ctx.lineTo(Math.floor(this.end.x+offSet) , this.end.y);
-        ctx.lineTo(this.end.x, this.end.y);
+        ctx.lineTo(this.end.x+ this.r, this.end.y);
       }
       ctx.strokeStyle = this.strokeStyle;
       ctx.lineWidth = this.lineWidth

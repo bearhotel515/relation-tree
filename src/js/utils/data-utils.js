@@ -84,7 +84,12 @@ export function getCanvasData(GroupApp, nodes, nodeMaps, nodeCfg, edgeCfg) {
       text: o.name,
       type: 'node',
       ...nodeCfg,
-      ...o,
+      father: o.father,
+      widthRatio: o.widthRatio,
+      which: o.which,
+      _level: o._level,
+      _uuid: o._uuid,
+      children: o.children,
       data:o,
       fillStyle: o.fillStyle||nodeCfg.fillStyle,
       strokeStyle:o.strokeStyle||nodeCfg.strokeStyle

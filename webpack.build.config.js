@@ -12,7 +12,7 @@ function resolve(dir) {
 module.exports = {
   entry: './src/index.js',
   output: {
-    filename: 'RelationTree.1.2.0.js',
+    filename: 'RelationTree.1.2.1.js',
     path: `${__dirname}/dist`,
     library: 'RelationTree', 
     libraryExport: "default",
